@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "347374623706",
+    "project_id": "buse-db",
+    "storage_bucket": "buse-db.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347374623706:android:95587664e53bb066f57ee3",
+        "android_client_info": {
+          "package_name": "com.example.buse_dri"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgFX_cH9fj0Yv1CUt6ajTHTZ0NI18tHDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,21 +31,25 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationRequest: LocationRequest? = null
+    private lateinit var database :FirebaseDatabase
+    private val TAG = "MyLogTag"
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        database = FirebaseDatabase.getInstance()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         NotificationUtils.createNotificationChannel(this)
 
-        var allPermissionsGranted by  mutableStateOf(false)
+        var allPermissionsGranted by mutableStateOf(false)
 
         val requestPermissionLauncher =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -139,6 +144,20 @@ class MainActivity : ComponentActivity() {
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             locationResult.locations.forEach { location ->
+                val locationData = hashMapOf(
+                    "latitude" to location.latitude,
+                    "longitude" to location.longitude,
+                    "timestamp" to System.currentTimeMillis()
+                )
+
+                database.reference.child("locations").push().setValue(locationData)
+                    .addOnSuccessListener {
+                        Log.d(TAG, "Location data successfully written to Firebase")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to write location data to Firebase", e)
+                    }
+
                 NotificationUtils.updateNotificationContent(
                     this@MainActivity,
                     "Location",
@@ -152,42 +171,4 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
-
-
-    private fun fetchCurrentLocation() {
-
-        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            showAlertToEnableGPS()
-            return
-        } else {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                    location?.let {
-//                        Toast.makeText(
-//                            this@MainActivity,
-//                            "${it.latitude} ${it.longitude}",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-
-                        NotificationUtils.updateNotificationContent(
-                            this,
-                            "Location",
-                            "${it.latitude} ${it.longitude}"
-                        )
-                    }
-                }
-            }
-        }
-
-
-    }
 }
-

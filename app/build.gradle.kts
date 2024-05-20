@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -69,4 +70,12 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation ("com.google.accompanist:accompanist-permissions:0.35.1-alpha")
+
+    //firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-database")
+
+    //fragment
+    implementation("androidx.fragment:fragment-ktx:1.7.1")
 }
