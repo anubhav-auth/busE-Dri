@@ -36,7 +36,7 @@ object NotificationUtils {
 
     fun showNotification(context: Context, title: String, content: String) {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background) // Replace with your app's notification icon
+            .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -47,7 +47,7 @@ object NotificationUtils {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                notify(1, builder.build()) // 1 is the notification ID, which you can use to update or cancel the notification
+                notify(1, builder.build())
             }
 
         }
@@ -55,8 +55,8 @@ object NotificationUtils {
 
     fun updateNotificationContent(context: Context, title: String, newContent: String) {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background) // Make sure this icon exists in your resources
-            .setContentTitle(title) // You might want to keep the title static or change it accordingly
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle(title)
             .setContentText(newContent)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setSound(null) // Explicitly set sound to null
@@ -68,7 +68,7 @@ object NotificationUtils {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                notify(1, builder.build()) // Use the same notification ID to update the existing notification
+                notify(1, builder.build())
             }
 
         }

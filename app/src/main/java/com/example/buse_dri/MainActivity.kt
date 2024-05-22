@@ -1,7 +1,6 @@
 package com.example.buse_dri
 
 import android.Manifest
-import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -24,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseApp
 
 
@@ -53,7 +51,6 @@ class MainActivity : ComponentActivity() {
         val requestPermissionLauncher =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
                 allPermissionsGranted = permissions.values.all { it }
-
             }
 
 
@@ -77,11 +74,10 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Button(onClick = {
-//                        setupLocationUpdates()
                         Log.d(TAG, "Button clicked")
 
-                        val intent2 = Intent(this@MainActivity, LocationService::class.java)
-                        startService(intent2)
+                        val intent = Intent(this@MainActivity, LocationService::class.java)
+                        startService(intent)
                     }) {
                         Text(text = "Start Tracking")
                     }

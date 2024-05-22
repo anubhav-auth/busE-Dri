@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.getIntent
 import android.content.pm.PackageManager
@@ -29,10 +30,13 @@ class LocationService: Service(){
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
+    private lateinit var context: Context
     private val TAG = "MyLogTag"
 
     private lateinit var database: DatabaseReference
-
+    fun setLocationContext(context: Context) {
+        this.context = context
+    }
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -81,8 +85,9 @@ class LocationService: Service(){
         val builder = AlertDialog.Builder(this)
         builder.setTitle("GPS Disabled")
         builder.setMessage("Please enable GPS to continue.")
-        builder.setPositiveButton("Open Location Settings") { _, _ ->
+        builder.setPositiveButton("Open Location Settings") { dialog, _ ->
             startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            dialog.dismiss()
         }
         builder.setNegativeButton("Cancel", null)
         builder.show()
