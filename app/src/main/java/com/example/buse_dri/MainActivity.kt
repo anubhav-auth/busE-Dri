@@ -1,15 +1,10 @@
 package com.example.buse_dri
 
 import android.Manifest
-import android.app.AlertDialog
+import android.app.PendingIntent
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
-import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -22,31 +17,37 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.firebase.database.FirebaseDatabase
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.*
+
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationRequest: LocationRequest? = null
-    private lateinit var database :FirebaseDatabase
     private val TAG = "MyLogTag"
+    private val TAG2 = "MyLogTag2"
+    val messagePayload = hashMapOf(
+        "title" to "ALERT!!!",
+        "body" to "DRIVER HAS STARTED THE JOURNEY."
+    )
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        FirebaseApp.initializeApp(this)
 
-        database = FirebaseDatabase.getInstance()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         NotificationUtils.createNotificationChannel(this)
 
         var allPermissionsGranted by mutableStateOf(false)
@@ -64,7 +65,6 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.INTERNET,
                 Manifest.permission.POST_NOTIFICATIONS,
-                Manifest.permission.FOREGROUND_SERVICE
             )
 
         )
@@ -79,7 +79,11 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Button(onClick = {
-                        setupLocationUpdates()
+//                        setupLocationUpdates()
+                        Log.d(TAG, "Button clicked")
+
+                        val intent2 = Intent(this@MainActivity, LocationService::class.java)
+                        startService(intent2)
                     }) {
                         Text(text = "Start Tracking")
                     }
@@ -99,76 +103,19 @@ class MainActivity : ComponentActivity() {
 
     }
 
-
-    private fun showAlertToEnableGPS() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("GPS Disabled")
-        builder.setMessage("Please enable GPS to continue.")
-        builder.setPositiveButton("Open Location Settings") { _, _ ->
-            startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-        }
-        builder.setNegativeButton("Cancel", null)
-        builder.show()
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
     }
 
-    private fun setupLocationUpdates() {
-        locationRequest = LocationRequest.create().apply {
-            interval = 500 // Update location every 1 second
-            fastestInterval = 500 // Fastest update interval
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-
-        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            showAlertToEnableGPS()
-            return
-        }
-
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest!!,
-                locationCallback,
-                Looper.getMainLooper()
-            )
-        }
-
-    }
-
-    private val locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            locationResult.locations.forEach { location ->
-                val locationData = hashMapOf(
-                    "latitude" to location.latitude,
-                    "longitude" to location.longitude,
-                    "timestamp" to System.currentTimeMillis()
-                )
-
-                database.reference.child("locations").push().setValue(locationData)
-                    .addOnSuccessListener {
-                        Log.d(TAG, "Location data successfully written to Firebase")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "Failed to write location data to Firebase", e)
-                    }
-
-                NotificationUtils.updateNotificationContent(
-                    this@MainActivity,
-                    "Location",
-                    "${location.latitude}, ${location.longitude}"
-                )
-            }
-        }
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        Log.d(TAG, "onDestroy")
+        stopService(Intent(this, LocationService::class.java))
     }
 }
