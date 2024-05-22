@@ -26,8 +26,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.FirebaseApp
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.*
 
 
 class MainActivity : ComponentActivity() {
